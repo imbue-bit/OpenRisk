@@ -20,13 +20,11 @@ LPPLParams<T> LPPLCalibrator<T>::calibrate(const Eigen::VectorX<T>& t_series,
         };
 
         T sse = LPPLModel<T>::cost_function(t_series, log_p_series, p);
+        
         T penalty = 0.0;
         const T lambda = 1e6;
-
         if (p.m <= 0.0 || p.m >= 1.0) penalty += lambda * std::pow(p.m - 0.5, 2);
         if (p.tc <= t_last) penalty += lambda * std::pow(t_last - p.tc + 1.0, 2);
-        if (p.B >= 0) penalty += lambda * std::pow(p.B, 2);
-        if (std::abs(p.C) > std::abs(p.B)) penalty += lambda * std::pow(p.C, 2);
 
         return sse + penalty;
     };
@@ -36,8 +34,8 @@ LPPLParams<T> LPPLCalibrator<T>::calibrate(const Eigen::VectorX<T>& t_series,
     
     T min_loss = std::numeric_limits<T>::max();
 
-    std::vector<T> m_seeds = {0.3, 0.5, 0.7};
-    std::vector<T> omega_seeds = {4.0, 8.0, 12.0};
+    std::vector<T> m_seeds = {0.5};
+    std::vector<T> omega_seeds = {8.0};
 
     for (auto m_s : m_seeds) {
         for (auto o_s : omega_seeds) {
