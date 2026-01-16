@@ -46,7 +46,7 @@ public:
                 T y_diff = y(i) - y(j);
                 T prod = x_diff * y_diff;
                 
-                if (prod > 0) concord_ant++;
+                if (prod > 0) concordant++;
                 else if (prod < 0) discordant++;
             }
         }
