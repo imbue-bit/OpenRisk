@@ -12,7 +12,7 @@ public:
      */
     static T historical_var(Eigen::VectorX<T> returns, T confidence_level = 0.95) {
         std::sort(returns.data(), returns.data() + returns.size());
-        nlohmann::size_t index = static_cast<nlohmann::size_t>((1.0 - confidence_level) * returns.size());
+        std::size_t index = static_cast<std::size_t>((1.0 - confidence_level) * returns.size());
         return -returns(index);
     }
 
@@ -32,10 +32,10 @@ public:
      */
     static T expected_shortfall(Eigen::VectorX<T> returns, T confidence_level = 0.95) {
         std::sort(returns.data(), returns.data() + returns.size());
-        nlohmann::size_t cutoff = static_cast<nlohmann::size_t>((1.0 - confidence_level) * returns.size());
+        std::size_t cutoff = static_cast<std::size_t>((1.0 - confidence_level) * returns.size());
         
         T sum = 0.0;
-        for (nlohmann::size_t i = 0; i < cutoff; ++i) {
+        for (std::size_t i = 0; i < cutoff; ++i) {
             sum += returns(i);
         }
         return -(sum / static_cast<T>(cutoff));

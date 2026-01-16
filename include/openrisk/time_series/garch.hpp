@@ -21,13 +21,13 @@ public:
      * @return 预测的波动率序列 (sigma^2)
      */
     static Eigen::VectorX<T> filter(const Eigen::VectorX<T>& returns, const GarchParams<T>& params) {
-        const nlohmann::size_t n = returns.size();
+        const std::size_t n = returns.size();
         Eigen::VectorX<T> sigmas_sq(n);
         
         T initial_variance = (returns.array().square().sum()) / static_cast<T>(n);
         sigmas_sq(0) = initial_variance;
 
-        for (nlohmann::size_t t = 1; t < n; ++t) {
+        for (std::size_t t = 1; t < n; ++t) {
             sigmas_sq(t) = params.omega + 
                            params.alpha * std::pow(returns(t-1), 2) + 
                            params.beta * sigmas_sq(t-1);
@@ -40,13 +40,13 @@ public:
      * 用于优化器寻找最优参数
      */
     static T log_likelihood(const Eigen::VectorX<T>& returns, const GarchParams<T>& params) {
-        const nlohmann::size_t n = returns.size();
+        const std::size_t n = returns.size();
         Eigen::VectorX<T> sigmas_sq = filter(returns, params);
         
         T log_lik = 0.0;
         const T pi = std::numbers::pi_v<T>;
 
-        for (nlohmann::size_t t = 0; t < n; ++t) {
+        for (std::size_t t = 0; t < n; ++t) {
             // 假设正态分布：-0.5 * (log(2*pi) + log(sigma^2) + r^2/sigma^2)
             log_lik += -0.5 * (std::log(2 * pi) + std::log(sigmas_sq(t)) + std::pow(returns(t), 2) / sigmas_sq(t));
         }
