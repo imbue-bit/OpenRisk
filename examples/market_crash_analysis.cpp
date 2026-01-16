@@ -1,33 +1,48 @@
 #include "openrisk/crash/lppl.hpp"
-#include "openrisk/time_series/garch.hpp"
-#include "openrisk/tail/var.hpp"
 #include <iostream>
-#include <iomanip>
+#include <vector>
+#include <Eigen/Dense>
+#include <cmath>
 
 int main() {
-    using namespace openrisk;
+    std::cout << "================================================" << std::endl;
+    std::cout << "   OpenRisk Market Analysis Report Demo         " << std::endl;
+    std::cout << "================================================" << std::endl;
 
-    const int n_days = 100;
-    Eigen::VectorXd t(n_days);
-    Eigen::VectorXd log_prices(n_days);
+    const int n = 120;
+    Eigen::VectorXd t(n);
+    Eigen::VectorXd log_p(n);
     
-    for(int i = 0; i < n_days; ++i) {
-        t(i) = i;
-        log_prices(i) = 4.0 + 0.02 * i + 0.05 * std::cos(0.1 * i);
+    for (int i = 0; i < n; ++i) {
+        t(i) = static_cast<double>(i);
+        double noise = 0.02 * (std::rand() / (double)RAND_MAX);
+        log_p(i) = 4.0 + 0.01 * std::pow(130.0 - i, 0.5) + noise; 
     }
 
-    std::cout << "OpenRisk Market Analysis Report:" << std::endl;
+    try {
+        openrisk::crash::LPPLCalibrator<double> calibrator;
+        double t_last = t(n-1);
+        
+        std::cout << "[INFO] Running LPPL Calibration..." << std::endl;
+        auto params = calibrator.calibrate(t, log_p, t_last);
 
-    auto lppl_res = crash::LPPLCalibrator<double>::calibrate(t, log_prices, 99.0);
-    std::cout << "[LPPL] Predicted Crash Time (tc): " << std::fixed << std::setprecision(2) << lppl_res.tc << std::endl;
-    std::cout << "[LPPL] Bubble Strength (m): " << lppl_res.m << std::endl;
+        std::cout << "------------------------------------------------" << std::endl;
+        std::cout << "[LPPL] Predicted Crash Time (tc): " << params.tc << std::endl;
+        std::cout << "[LPPL] Bubble Strength (m):       " << params.m << std::endl;
+        std::cout << "[LPPL] Power Law Magnitude (B):   " << params.B << std::endl;
+        std::cout << "[LPPL] Oscillation Amp (C):       " << params.C << std::endl;
+        std::cout << "------------------------------------------------" << std::endl;
 
-    Eigen::VectorXd returns = log_prices.bottomRows(n_days-1) - log_prices.topRows(n_days-1);
-    auto garch_params = time_series::calibrate_garch(returns);
-    std::cout << "[GARCH] Omega: " << garch_params.omega << " Alpha: " << garch_params.alpha << " Beta: " << garch_params.beta << std::endl;
+        if (params.tc > t_last && params.tc < t_last + 30) {
+            std::cout << "  WARNING: Critical market regime detected near t=" << params.tc << std::endl;
+        } else {
+            std::cout << "INFO: No immediate crash regime detected." << std::endl;
+        }
 
-    double var_95 = tail::RiskMetrics<double>::historical_var(returns, 0.95);
-    std::cout << "[Tail] 95% Historical VaR: " << var_95 << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Error during LPPL analysis: " << e.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }
