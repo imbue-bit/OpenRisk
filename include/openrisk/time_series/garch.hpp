@@ -53,5 +53,6 @@ public:
         return -log_lik;
     }
 };
-
+template <core::FloatingPoint T = double>
+GarchParams<T> calibrate_garch(const Eigen::VectorX<T>& returns);
 } // namespace openrisk::time_series

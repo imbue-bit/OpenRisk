@@ -54,5 +54,11 @@ public:
         return (p.m > 0 && p.m < 1 && p.B < 0);
     }
 };
-
+template <core::FloatingPoint T = double>
+class LPPLCalibrator {
+public:
+    static LPPLParams<T> calibrate(const Eigen::VectorX<T>& t_series, 
+                                   const Eigen::VectorX<T>& log_p_series,
+                                   T t_last);
+};
 } // namespace openrisk::crash
